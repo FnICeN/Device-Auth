@@ -14,19 +14,63 @@
                 <div class="${properties.kcLabelWrapperClass!}">
                     <label class="${properties.kcLabelClass!}">我们将检测你的终端设备信息以完成认证</label>
                 </div>
+            </div>
 
-                <div class="${properties.kcInputWrapperClass!}">
-                    <input type="hidden" id="cpuid" name="cpuid" value=""/>
-                    <input type="hidden" id="device_fingerprint" name="device_fingerprint" value=""/>
-                    <div id="device-status">正在检测设备信息，请稍候…</div>
+            <div class="${properties.kcFormGroupClass!}">
+                <div class="${properties.kcLabelWrapperClass!}">
+                    <div class="${properties.kcFormGroupLabelClass!} ${properties.kcFormLabelClass!}">
+                        <label class="${properties.kcFormLabelTextClass!}">CPU ID</label>
+                    </div>
+                </div>
+                <div class="${properties.kcInputGroup!}">
+                    <div class="${properties.kcInputGroupItemClass!} ${properties.kcFill!}">
+                        <div class="${properties.kcInputClass!} ${properties.kcFormReadOnlyClass!}">
+                            <input id="cpuid" name="cpuid" value="" type="password" readonly/>
+                        </div>
+                    </div>
+                    <div class="${properties.kcInputGroupItemClass!}">
+                        <button class="${properties.kcFormPasswordVisibilityButtonClass!}" type="button"
+                                aria-label="${msg('showPassword')}"
+                                aria-controls="cpuid" data-password-toggle
+                                data-icon-show="fa-eye fas" data-icon-hide="fa-eye-slash fas"
+                                data-label-show="${msg('showPassword')}" data-label-hide="${msg('hidePassword')}">
+                            <i class="fa-eye fas" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <div class="${properties.kcFormGroupClass!}">
+                <div class="${properties.kcLabelWrapperClass!}">
+                    <div class="${properties.kcFormGroupLabelClass!} ${properties.kcFormLabelClass!}">
+                        <label class="${properties.kcFormLabelTextClass!}">Finger Print</label>
+                    </div>
+                </div>
+                <div class="${properties.kcInputGroup!}">
+                    <div class="${properties.kcInputGroupItemClass!} ${properties.kcFill!}">
+                        <div class="${properties.kcInputClass!} ${properties.kcFormReadOnlyClass!}">
+                            <input id="device_fingerprint" name="device_fingerprint" value="" type="password" readonly/>
+                        </div>
+                    </div>
+                    <div class="${properties.kcInputGroupItemClass!}">
+                        <button class="${properties.kcFormPasswordVisibilityButtonClass!}" type="button"
+                                aria-label="${msg('showPassword')}"
+                                aria-controls="device_fingerprint" data-password-toggle
+                                data-icon-show="fa-eye fas" data-icon-hide="fa-eye-slash fas"
+                                data-label-show="${msg('showPassword')}" data-label-hide="${msg('hidePassword')}">
+                            <i class="fa-eye fas" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="device-status">正在检测设备信息，请稍候…</div>
 
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
                     <div class="${properties.kcFormButtonsWrapperClass!}">
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"
-                               name="login" id="kc-device-submit" type="submit" value="${msg("doSubmit")}" />
+                               name="login" id="kc-device-submit" type="submit" value="${msg("doSubmit")}"/>
                     </div>
                 </div>
             </div>
@@ -63,7 +107,7 @@
                             }
                             cpuidEl.value = info.cpuid || '';
                             fpEl.value = info.fingerprint || '';
-                            statusEl.textContent = '检测到设备信息，请提交';
+                            statusEl.textContent = '检测到设备信息，请提交以进行首台设备的注册';
                             submitBtn.disabled = false;
                             // 自动提交表单触发 Authenticator.action(...)
                             // form.submit();
@@ -79,7 +123,7 @@
             })();
 
             function getDeviceInfo(callback) {
-                callback({"cpuid" : "abcdef", "fingerprint" : "finger"});
+                callback({"cpuid": "abcdef", "fingerprint": "finger"});
             }
         </script>
     </#if>
