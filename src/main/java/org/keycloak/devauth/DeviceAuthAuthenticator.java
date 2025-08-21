@@ -7,21 +7,30 @@ import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.CredentialValidator;
+import org.keycloak.credential.CredentialModel;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DeviceAuthAuthenticator implements Authenticator, CredentialValidator<DeviceAuthCredentialProvider> {
     private Logger logger = Logger.getLogger(DeviceAuthAuthenticator.class);
     @Override
     public void authenticate(AuthenticationFlowContext authenticationFlowContext) {
+        List<CredentialModel> credentials = authenticationFlowContext.getUser().credentialManager().getStoredCredentialsByTypeStream("DEVICE_AUTH").collect(Collectors.toList());
+        authenticationFlowContext.form().setAttribute("credentials", credentials);
+        logger.info("凭证数量：" + credentials.size());
+        logger.info("首个凭证userLabel：" + credentials.getFirst().getUserLabel());
+        logger.info("首个凭证secret：" + credentials.getFirst().getSecretData());
         logger.info("进入认证，显示页面...");
         Response challenge = authenticationFlowContext.form().createForm("DeviceInfoLogin.ftl");
         authenticationFlowContext.challenge(challenge);
     }
 
-    // TODO: 与validateAnswer方法联动实现信息校验
     @Override
     public void action(AuthenticationFlowContext authenticationFlowContext) {
         boolean validated = validateAnswer(authenticationFlowContext);
@@ -64,15 +73,20 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
 
     }
 
-    // TODO: 完成信息校验，此处临时只返回true便于开发
     protected boolean validateAnswer(AuthenticationFlowContext authenticationFlowContext) {
         MultivaluedMap<String, String> formData = authenticationFlowContext.getHttpRequest().getDecodedFormParameters();
-        // 得到设备信息
+        // 得到提交的设备信息
         String cpuid = formData.getFirst("cpuid");
         String visitorId = formData.getFirst("device_fingerprint");
+        String credentialId = formData.getFirst("credentialId");
+        logger.info("凭据ID：" + credentialId);
         logger.info("设备信息：");
         logger.info("cpuid: " + cpuid);
         logger.info("visitorId: " + visitorId);
-        return true;
+
+        String challengeResponse = cpuid + "||" + visitorId;
+
+        UserCredentialModel input = new UserCredentialModel(credentialId, getType(authenticationFlowContext.getSession()), challengeResponse);
+        return getCredentialProvider(authenticationFlowContext.getSession()).isValid(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), input);
     }
 }

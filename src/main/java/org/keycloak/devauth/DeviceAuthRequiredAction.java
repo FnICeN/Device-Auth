@@ -22,6 +22,7 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
 
     }
 
+    // TODO：允许用户添加多个凭证数据
     @Override
     public void requiredActionChallenge(RequiredActionContext requiredActionContext) {
         logger.info("打开添加信息界面...");

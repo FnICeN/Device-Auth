@@ -32,7 +32,11 @@ public class DeviceAuthCredentialProvider implements CredentialProvider<DeviceAu
         CredentialModel cm = userModel.credentialManager().getStoredCredentialById(credentialId);
         DeviceAuthCredentialModel dacm = getCredentialFromModel(cm);
 
-        return dacm.getDeviceData().getCpuId().equals(challengeResponse);
+        String[] parts = challengeResponse.split("\\|\\|", 2);
+        boolean cpuIdFlag = dacm.getDeviceData().getCpuId().equals(parts[0]);
+        boolean visitorIdFlag = dacm.getDeviceData().getVisitorId().equals(parts.length > 1 ? parts[1] : "");
+
+        return cpuIdFlag && visitorIdFlag;
     }
 
     @Override

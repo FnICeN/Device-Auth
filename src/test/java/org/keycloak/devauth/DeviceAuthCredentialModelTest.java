@@ -17,6 +17,7 @@ public class DeviceAuthCredentialModelTest {
         Assert.assertEquals("{\"deviceName\":\"Admin\"}", dacm.getCredentialData());
         Assert.assertEquals("{\"visitorId\":\"73c6b82465554e9c5fc4b76f11ac99c6\",\"cpuId\":\"ABCDEFG\"}", dacm.getSecretData());
         Assert.assertEquals("DEVICE_AUTH", dacm.getType());
+        Assert.assertEquals("Admin", dacm.getUserLabel());
         System.out.println(dacm.getCreatedDate());
     }
 }

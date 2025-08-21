@@ -60,6 +60,8 @@ public class DeviceAuthCredentialModel extends CredentialModel {
 
     private void fillFields() {
         try {
+            // 设置userLabel字段，方便之后在前端页面作区分，设置userLabel与deviceName相同
+            setUserLabel(deviceName.getDeviceName());
             // 将设备名作为CredentialData，目的是为了之后区分多个不同凭证
             setCredentialData(JsonSerialization.writeValueAsString(deviceName));
             setSecretData(JsonSerialization.writeValueAsString(deviceData));

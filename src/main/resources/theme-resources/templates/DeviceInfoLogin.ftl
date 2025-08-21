@@ -5,7 +5,6 @@
     <#elseif section = "header">
         设备信息检测
     <#elseif section = "form">
-    <#-- 如果 action 设置了错误消息，显示出来 -->
         <#if message?exists>
             <div class="kc-feedback-text">${message}</div>
         </#if>
@@ -15,6 +14,41 @@
                     <label class="${properties.kcLabelClass!}">我们将检测你的终端设备信息以完成认证</label>
                 </div>
             </div>
+
+            <#-- 新增：凭证选择区域 -->
+            <#if credentials?has_content>
+                <div class="${properties.kcFormGroupClass!}">
+                    <div class="${properties.kcLabelWrapperClass!}">
+                        <div class="${properties.kcFormGroupLabelClass!} ${properties.kcFormLabelClass!}">
+                            <label class="${properties.kcFormLabelTextClass!}">请选择认证设备</label>
+                        </div>
+                    </div>
+                    <div class="kc-device-credentials-list" style="margin: 12px 0;">
+                        <#list credentials as credential>
+                            <div class="kc-device-credential-item"
+                                 style="padding: 8px 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; align-items: center;">
+                                <input type="radio" name="credentialId" id="cred-${credential.id}"
+                                       value="${credential.id}"
+                                       <#if credential?is_first>checked</#if>
+                                       style="margin-right: 10px;"/>
+                                <label for="cred-${credential.id}" style="flex: 1; cursor: pointer;">
+                                    <strong>${credential.userLabel!credential.type!}</strong>
+                                    <#if credential.createdDate??>
+                                        <span style="color: #888; font-size: 0.95em; margin-left: 8px;">
+                                            (${credential.createdDate?number_to_date?string("yyyy-MM-dd HH:mm")})
+                                        </span>
+                                    </#if>
+                                    <#if credential.type?? && credential.type != "password">
+                                        <span style="color: #2196f3; font-size: 0.95em; margin-left: 8px;">
+                                            [${credential.type}]
+                                        </span>
+                                    </#if>
+                                </label>
+                            </div>
+                        </#list>
+                    </div>
+                </div>
+            </#if>
 
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">
@@ -69,8 +103,6 @@
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
                     <div class="${properties.kcFormButtonsWrapperClass!}">
-                        <input type="hidden" id="id-hidden-input" name="credentialId"
-                               <#if auth.selectedCredential?has_content>value="${auth.selectedCredential}"</#if>/>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"
                                name="login" id="kc-device-submit" type="submit" value="${msg("doLogIn")}"/>
                     </div>
