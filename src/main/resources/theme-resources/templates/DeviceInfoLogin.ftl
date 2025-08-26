@@ -113,6 +113,7 @@
             <div class="kc-feedback-text">请启用 JavaScript 以继续设备校验。</div>
         </noscript>
 
+        <script src="https://openfpcdn.io/fingerprintjs/v3.4.1/umd.min.js"></script>
         <script>
             (function () {
                 var statusEl = document.getElementById('device-status');
@@ -156,7 +157,24 @@
             })();
 
             function getDeviceInfo(callback) {
-                callback({"cpuid": "abcdef", "fingerprint": "finger"});
+                // FingerprintJS 异步
+                var fpPromise = FingerprintJS.load()
+                    .then(fp => fp.get())
+                    .then(result => result.visitorId);
+
+                // fetch 异步
+                var cpuPromise = fetch("http://127.0.0.1:12345/get_cpuid")
+                    .then(response => response.json())
+                    .then(data => data.cpuid)
+                    .catch(() => {
+                        alert("未检测到本地硬件信息服务，请下载安装本地服务。");
+                        return ''; // 出错时返回空字符串
+                    });
+
+                // 等待两个都完成
+                Promise.all([cpuPromise, fpPromise]).then(function([cpuId, fingerPrint]) {
+                    callback({"cpuid": cpuId, "fingerprint": fingerPrint});
+                });
             }
         </script>
     </#if>
