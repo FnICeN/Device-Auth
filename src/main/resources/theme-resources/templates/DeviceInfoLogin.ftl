@@ -5,9 +5,6 @@
     <#elseif section = "header">
         设备信息检测
     <#elseif section = "form">
-        <#if message?exists>
-            <div class="kc-feedback-text">${message}</div>
-        </#if>
         <form id="kc-device-info-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
                 <div class="${properties.kcLabelWrapperClass!}">
@@ -127,9 +124,8 @@
                     submitBtn.disabled = false; // 允许用户手动提交或重试
                 }
 
-                // 以下假设你的前端已有一个 getDeviceInfo(callback) 函数，
+                // 假设前端已有一个 getDeviceInfo(callback) 函数
                 // callback 接收一个对象 { cpuid: '...', fingerprint: '...'}
-                // 若你已有不同接口，请把这段替换为你的实现。
                 if (typeof getDeviceInfo === 'function') {
                     try {
                         // 禁用提交按钮，等待自动提交
@@ -151,7 +147,6 @@
                         setError('检测设备信息时发生异常，请重试。');
                     }
                 } else {
-                    // 如果没有提供 getDeviceInfo，建议把你的 JS 放到此处或更改此逻辑
                     setError('前端未提供 getDeviceInfo() 方法，请将采集脚本集成到此页面后重试。');
                 }
             })();
@@ -172,7 +167,7 @@
                     });
 
                 // 等待两个都完成
-                Promise.all([cpuPromise, fpPromise]).then(function([cpuId, fingerPrint]) {
+                Promise.all([cpuPromise, fpPromise]).then(function ([cpuId, fingerPrint]) {
                     callback({"cpuid": cpuId, "fingerprint": fingerPrint});
                 });
             }

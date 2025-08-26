@@ -7,6 +7,7 @@ import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.utils.FormMessage;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 public class DeviceAuthRequiredAction implements RequiredActionProvider, CredentialRegistrator {
@@ -31,20 +32,26 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
 
     }
 
-    // TODO：暂定设备名为host1，之后需要改动
+    // TODO：报错信息会被重复显示在页面上，待解决
     @Override
     public void processAction(RequiredActionContext requiredActionContext) {
         logger.info("处理添加信息的表单数据...");
         String cpuid = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("cpuid");
         String visitorId = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("device_fingerprint");
+        String hostName = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("host_name");
         logger.info("获取到的设备信息：");
         logger.info("cpuid：" + cpuid);
         logger.info("visitorId：" + visitorId);
-        logger.info("暂定设备名为host1");
+        logger.info("hostName：" + hostName);
+        if (cpuid.isEmpty() || visitorId.isEmpty() || hostName.isEmpty()) {
+            requiredActionContext.form().addError(new FormMessage("host_name", "主机名不可为空"));
+            requiredActionContext.challenge(requiredActionContext.form().createForm("DeviceInfoRegister.ftl"));
+            return;
+        }
         DeviceAuthCredentialProvider dacp = (DeviceAuthCredentialProvider) requiredActionContext.getSession().getProvider(CredentialProvider.class, "device-auth");
         // 将信息存储下来
-        dacp.createCredential(requiredActionContext.getRealm(), requiredActionContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth("host1", cpuid, visitorId));
-        logger.info("已存储host1凭证信息：cpuid=" + cpuid + " visitorId=" + visitorId);
+        dacp.createCredential(requiredActionContext.getRealm(), requiredActionContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth(hostName, cpuid, visitorId));
+        logger.info("已存储凭证信息：hostName=" + hostName + "cpuid=" + cpuid + " visitorId=" + visitorId);
         requiredActionContext.success();
     }
 
