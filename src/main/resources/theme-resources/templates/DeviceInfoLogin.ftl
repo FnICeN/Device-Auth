@@ -95,6 +95,39 @@
                 </div>
             </div>
 
+            <#-- 设备信息记录开关 -->
+            <div class="${properties.kcFormGroupClass!}">
+                <div class="${properties.kcLabelWrapperClass!}">
+                    <div class="${properties.kcFormGroupLabelClass!} ${properties.kcFormLabelClass!}">
+                        <label class="${properties.kcFormLabelTextClass!}" for="recordDeviceInfoSwitch">
+                            是否记录本次设备信息
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="pf-v5-c-switch" for="recordDeviceInfoSwitch"
+                           data-ouia-component-type="PF5/Switch"
+                           data-ouia-safe="true"
+                           data-ouia-component-id="OUIA-Generated-Switch-DeviceInfo">
+                        <input id="recordDeviceInfoSwitch"
+                               class="pf-v5-c-switch__input"
+                               type="checkbox"
+                               name="recordDeviceInfo"
+                               value="true"
+                               aria-labelledby="recordDeviceInfoSwitch-off"
+                               data-testid="recordDeviceInfoSwitch"
+                               aria-label="">
+                        <span class="pf-v5-c-switch__toggle"></span>
+                        <span class="pf-v5-c-switch__label pf-m-on"
+                              id="recordDeviceInfoSwitch-on"
+                              aria-hidden="true">开</span>
+                        <span class="pf-v5-c-switch__label pf-m-off"
+                              id="recordDeviceInfoSwitch-off"
+                              aria-hidden="true">关</span>
+                    </label>
+                </div>
+            </div>
+
             <div id="device-status">正在检测设备信息，请稍候…</div>
 
             <div class="${properties.kcFormGroupClass!}">

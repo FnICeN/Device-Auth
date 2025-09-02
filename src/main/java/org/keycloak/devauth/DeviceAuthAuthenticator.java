@@ -19,11 +19,13 @@ import java.util.stream.Collectors;
 
 public class DeviceAuthAuthenticator implements Authenticator, CredentialValidator<DeviceAuthCredentialProvider> {
     private Logger logger = Logger.getLogger(DeviceAuthAuthenticator.class);
+    private int credentialNum = 3;
     @Override
     public void authenticate(AuthenticationFlowContext authenticationFlowContext) {
         List<CredentialModel> credentials = authenticationFlowContext.getUser().credentialManager().getStoredCredentialsByTypeStream("DEVICE_AUTH").collect(Collectors.toList());
         authenticationFlowContext.form().setAttribute("credentials", credentials);
-        logger.info("凭证数量：" + credentials.size());
+        credentialNum = credentials.size();
+        logger.info("凭证数量：" + credentialNum);
         logger.info("首个凭证userLabel：" + credentials.getFirst().getUserLabel());
         logger.info("首个凭证secret：" + credentials.getFirst().getSecretData());
         logger.info("进入认证，显示页面...");
@@ -79,14 +81,33 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         String cpuid = formData.getFirst("cpuid");
         String visitorId = formData.getFirst("device_fingerprint");
         String credentialId = formData.getFirst("credentialId");
+        boolean save = formData.getFirst("recordDeviceInfo") != null;
         logger.info("凭据ID：" + credentialId);
         logger.info("设备信息：");
         logger.info("cpuid: " + cpuid);
         logger.info("visitorId: " + visitorId);
+        logger.info("是否保存: " + save);
 
         String challengeResponse = cpuid + "||" + visitorId;
 
         UserCredentialModel input = new UserCredentialModel(credentialId, getType(authenticationFlowContext.getSession()), challengeResponse);
-        return getCredentialProvider(authenticationFlowContext.getSession()).isValid(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), input);
+        boolean isValid = getCredentialProvider(authenticationFlowContext.getSession()).isValid(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), input);
+        // 用户选择注册新设备
+        if (save && !isValid) {
+            registerNewDevice(authenticationFlowContext, cpuid, visitorId);
+            return true;
+        }
+        return isValid;
+    }
+
+    private void registerNewDevice(AuthenticationFlowContext authenticationFlowContext, String cpuid, String visitorId) {
+        if (credentialNum >= 3) {
+            Response challenge = authenticationFlowContext.form().setError("凭证超上限").createForm("DeviceInfoLogin.ftl");
+            authenticationFlowContext.failureChallenge(AuthenticationFlowError.ACCESS_DENIED, challenge);
+        }
+        logger.info("选择注册且此设备原本无效，此认证直接通过，将信息传递至下一个认证器...");
+        authenticationFlowContext.getAuthenticationSession().setClientNote("registeringDevice", "true");
+        authenticationFlowContext.getAuthenticationSession().setClientNote("cpuid", cpuid);
+        authenticationFlowContext.getAuthenticationSession().setClientNote("visitorId", visitorId);
     }
 }
