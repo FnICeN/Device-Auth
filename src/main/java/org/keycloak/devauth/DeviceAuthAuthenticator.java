@@ -1,5 +1,7 @@
 package org.keycloak.devauth;
 
+import com.DeviceAuthApi.DeviceAuthConstants;
+import com.DeviceAuthApi.DeviceAuthCredentialProvider;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
@@ -33,6 +35,8 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         authenticationFlowContext.challenge(challenge);
     }
 
+    // TODO：验证失败后报错信息会取代选择框，待解决
+    // TODO：若用户错选设备且同意注册，则导致冗余注册
     @Override
     public void action(AuthenticationFlowContext authenticationFlowContext) {
         boolean validated = validateAnswer(authenticationFlowContext);
@@ -67,7 +71,7 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
 
     @Override
     public DeviceAuthCredentialProvider getCredentialProvider(KeycloakSession keycloakSession) {
-        return (DeviceAuthCredentialProvider) keycloakSession.getProvider(CredentialProvider.class, DeviceAuthCredentialProviderFactory.PROVIDER_ID);
+        return (DeviceAuthCredentialProvider) keycloakSession.getProvider(CredentialProvider.class, DeviceAuthConstants.credentialProviderFactoryID);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.keycloak.devauth.dto;
+package com.DeviceAuthApi.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

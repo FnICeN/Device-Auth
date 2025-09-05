@@ -1,5 +1,7 @@
-package org.keycloak.devauth;
+package org.keycloak.dapi;
 
+import com.DeviceAuthApi.DeviceAuthCredentialModel;
+import com.DeviceAuthApi.DeviceAuthCredentialProvider;
 import org.keycloak.common.util.Time;
 import org.keycloak.credential.*;
 import org.keycloak.models.KeycloakSession;
@@ -7,10 +9,10 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 
-public class DeviceAuthCredentialProvider implements CredentialProvider<DeviceAuthCredentialModel>, CredentialInputValidator {
+public class DeviceAuthCredentialProviderImpl implements DeviceAuthCredentialProvider {
     protected KeycloakSession session;
 
-    public DeviceAuthCredentialProvider(KeycloakSession session) {
+    public DeviceAuthCredentialProviderImpl(KeycloakSession session) {
         this.session = session;
     }
 
@@ -70,7 +72,7 @@ public class DeviceAuthCredentialProvider implements CredentialProvider<DeviceAu
                 .category(CredentialTypeMetadata.Category.TWO_FACTOR)
                 .displayName(DeviceAuthCredentialProviderFactory.PROVIDER_ID)
                 .helpText("device-authenticate")
-                .createAction(DeviceAuthAuthenticatorFactory.PROVIDER_ID)
+                .createAction("device-auth-authenticator")
                 .removeable(false)
                 .build(session);
     }

@@ -1,9 +1,9 @@
-package org.keycloak.devauth;
+package com.DeviceAuthApi;
 
+import com.DeviceAuthApi.dto.DeviceData;
+import com.DeviceAuthApi.dto.DeviceName;
 import org.keycloak.common.util.Time;
 import org.keycloak.credential.CredentialModel;
-import org.keycloak.devauth.dto.DeviceData;
-import org.keycloak.devauth.dto.DeviceName;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;

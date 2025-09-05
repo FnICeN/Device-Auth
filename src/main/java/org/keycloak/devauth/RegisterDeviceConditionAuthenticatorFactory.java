@@ -21,7 +21,7 @@ public class RegisterDeviceConditionAuthenticatorFactory implements ConditionalA
 
     @Override
     public String getDisplayType() {
-        return "Condition - 仅注册设备时触发";
+        return "Condition - 注册设备时触发";
     }
 
     @Override

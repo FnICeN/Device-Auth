@@ -1,5 +1,8 @@
 package org.keycloak.devauth;
 
+import com.DeviceAuthApi.DeviceAuthConstants;
+import com.DeviceAuthApi.DeviceAuthCredentialModel;
+import com.DeviceAuthApi.DeviceAuthCredentialProvider;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.CredentialRegistrator;
@@ -23,7 +26,6 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
 
     }
 
-    // TODO：允许用户添加多个凭证数据
     @Override
     public void requiredActionChallenge(RequiredActionContext requiredActionContext) {
         logger.info("打开添加信息界面...");
@@ -48,7 +50,7 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
             requiredActionContext.challenge(requiredActionContext.form().createForm("DeviceInfoRegister.ftl"));
             return;
         }
-        DeviceAuthCredentialProvider dacp = (DeviceAuthCredentialProvider) requiredActionContext.getSession().getProvider(CredentialProvider.class, "device-auth");
+        DeviceAuthCredentialProvider dacp = (DeviceAuthCredentialProvider) requiredActionContext.getSession().getProvider(CredentialProvider.class, DeviceAuthConstants.credentialProviderFactoryID);
         // 将信息存储下来
         dacp.createCredential(requiredActionContext.getRealm(), requiredActionContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth(hostName, cpuid, visitorId));
         logger.info("已存储凭证信息：hostName=" + hostName + "cpuid=" + cpuid + " visitorId=" + visitorId);
