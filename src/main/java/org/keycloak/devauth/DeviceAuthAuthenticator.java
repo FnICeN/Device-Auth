@@ -2,7 +2,9 @@ package org.keycloak.devauth;
 
 import com.DeviceAuthApi.DeviceAuthConstants;
 import com.DeviceAuthApi.DeviceAuthCredentialProvider;
+import jakarta.ws.rs.core.Cookie;
 import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
@@ -16,7 +18,9 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 
+import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DeviceAuthAuthenticator implements Authenticator, CredentialValidator<DeviceAuthCredentialProvider> {
@@ -26,6 +30,7 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
     public void authenticate(AuthenticationFlowContext authenticationFlowContext) {
         List<CredentialModel> credentials = authenticationFlowContext.getUser().credentialManager().getStoredCredentialsByTypeStream("DEVICE_AUTH").collect(Collectors.toList());
         authenticationFlowContext.form().setAttribute("credentials", credentials);
+        setNonceCookie(authenticationFlowContext);  // 设置随机字符串
         credentialNum = credentials.size();
         logger.info("凭证数量：" + credentialNum);
         logger.info("首个凭证userLabel：" + credentials.getFirst().getUserLabel());
@@ -85,14 +90,20 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         String cpuid = formData.getFirst("cpuid");
         String visitorId = formData.getFirst("device_fingerprint");
         String credentialId = formData.getFirst("credentialId");
+        String signature = formData.getFirst("signature");
+        String timestamp = formData.getFirst("timestamp");
+        String nonce = getNonceFromCookie(authenticationFlowContext);
         boolean save = formData.getFirst("recordDeviceInfo") != null;
         logger.info("凭据ID：" + credentialId);
         logger.info("设备信息：");
         logger.info("cpuid: " + cpuid);
         logger.info("visitorId: " + visitorId);
+        logger.info("signature: " + signature);
+        logger.info("timestamp: " + timestamp);
+        logger.info("nonce：" + nonce);
         logger.info("是否保存: " + save);
 
-        String challengeResponse = cpuid + "||" + visitorId;
+        String challengeResponse = signature + "||" + visitorId + "||" + timestamp + "||" + nonce;
 
         UserCredentialModel input = new UserCredentialModel(credentialId, getType(authenticationFlowContext.getSession()), challengeResponse);
         boolean isValid = getCredentialProvider(authenticationFlowContext.getSession()).isValid(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), input);
@@ -113,5 +124,22 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         authenticationFlowContext.getAuthenticationSession().setClientNote("registeringDevice", "true");
         authenticationFlowContext.getAuthenticationSession().setClientNote("cpuid", cpuid);
         authenticationFlowContext.getAuthenticationSession().setClientNote("visitorId", visitorId);
+    }
+
+    private void setNonceCookie(AuthenticationFlowContext context) {
+        String nonce = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        URI uri = context.getUriInfo().getBaseUriBuilder().path("realms").path(context.getRealm().getName()).build();
+        NewCookie newCookie = new NewCookie.Builder("NONCE").value(nonce)
+                .path(uri.getRawPath())
+                .secure(false)
+                .build();
+        context.getSession().getContext().getHttpResponse().setCookieIfAbsent(newCookie);
+        context.getAuthenticationSession().setClientNote("nonce", nonce);
+        logger.info("保存nonce：" + nonce);
+    }
+
+    private String getNonceFromCookie(AuthenticationFlowContext context) {
+        Cookie cookie = context.getHttpRequest().getHttpHeaders().getCookies().get("NONCE");
+        return cookie.getValue().trim();
     }
 }

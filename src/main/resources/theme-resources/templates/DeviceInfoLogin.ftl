@@ -133,6 +133,8 @@
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
                     <div class="${properties.kcFormButtonsWrapperClass!}">
+                        <input type="hidden" id="signature" name="signature" value=""/>
+                        <input type="hidden" id="timestamp" name="timestamp" value=""/>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"
                                name="login" id="kc-device-submit" type="submit" value="${msg("doLogIn")}"/>
                     </div>
@@ -148,6 +150,8 @@
             (function () {
                 var statusEl = document.getElementById('device-status');
                 var cpuidEl = document.getElementById('cpuid');
+                var signEl = document.getElementById('signature');
+                var timeEl = document.getElementById('timestamp');
                 var fpEl = document.getElementById('device_fingerprint');
                 var form = document.getElementById('kc-device-info-form');
                 var submitBtn = document.getElementById('kc-device-submit');
@@ -170,6 +174,10 @@
                             }
                             cpuidEl.value = info.cpuid || '';
                             fpEl.value = info.fingerprint || '';
+                            if (info.sign && info.timestamp) {
+                                signEl.value = info.sign;
+                                timeEl.value = info.timestamp;
+                            }
                             statusEl.textContent = '检测到设备信息，请提交以尝试登录';
                             submitBtn.disabled = false;
                             // 自动提交表单触发 Authenticator.action(...)
@@ -185,25 +193,49 @@
             })();
 
             function getDeviceInfo(callback) {
+                // Cookie
+                var nonce = getCookie("NONCE");
+                console.log(nonce);
                 // FingerprintJS 异步
                 var fpPromise = FingerprintJS.load()
                     .then(fp => fp.get())
                     .then(result => result.visitorId);
 
                 // fetch 异步
-                var cpuPromise = fetch("http://127.0.0.1:12345/get_cpuid")
+                var url = "http://127.0.0.1:12345/get_cpuid";
+                if (nonce) {
+                    url += "?" + encodeURIComponent(nonce);
+                }
+                var cpuPromise = fetch(url)
                     .then(response => response.json())
-                    .then(data => data.cpuid)
+                    .then(data => {
+                        if (data.cpuid) {
+                            return { cpuid: data.cpuid };
+                        } else if (data.sign && data.timestamp) {
+                            return { sign: data.sign, timestamp: data.timestamp };
+                        } else {
+                            alert("Agent返回非法");
+                            return '';
+                        }
+                    })
                     .catch(() => {
                         alert("未检测到本地硬件信息服务，请下载安装本地服务。");
                         return ''; // 出错时返回空字符串
                     });
 
                 // 等待两个都完成
-                Promise.all([cpuPromise, fpPromise]).then(function ([cpuId, fingerPrint]) {
-                    callback({"cpuid": cpuId, "fingerprint": fingerPrint});
+                Promise.all([cpuPromise, fpPromise]).then(function ([cpuResult, fingerPrint]) {
+                    callback(Object.assign({}, cpuResult, { fingerprint: fingerPrint }));
                 });
             }
+
+            function getCookie(name) {
+                const value = "; " + document.cookie;
+                const parts = value.split("; " + name + "=");
+                if (parts.length === 2) return parts.pop().split(";").shift();
+                return null;
+            }
+
         </script>
     </#if>
 </@layout.registrationLayout>
