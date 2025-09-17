@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
@@ -7,6 +8,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocalHardwareService {
     static Crypto crypto;
@@ -27,11 +30,16 @@ public class LocalHardwareService {
 
             GetDeviceInfo gdi = new GetDeviceInfo();
             String cpuid = gdi.getCpuId();
-
             String response;
 
             if (nonce == null || nonce.isEmpty()) {
-                response = "{\"cpuid\":\"" + cpuid + "\"}";
+                String publicKeyJson = crypto.getPublicKeysetString();
+                Map<String, Object> map = new HashMap<>();
+                map.put("cpuid", cpuid);
+                map.put("publicKeyJson", publicKeyJson); // publicKeyJson 是字符串
+                ObjectMapper objectMapper = new ObjectMapper();
+                response = objectMapper.writeValueAsString(map);
+
             } else {
                 String timestamp = String.valueOf(System.currentTimeMillis());
                 String signed = crypto.sign(cpuid, timestamp, nonce);
@@ -39,7 +47,6 @@ public class LocalHardwareService {
             }
 
             System.out.println(response);
-            System.out.println("{\"cpuid\":\"" + cpuid + "\"}");
             exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
             // 针对本地前端请求时跨域问题
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");

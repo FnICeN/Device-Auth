@@ -41,10 +41,12 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
         String cpuid = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("cpuid");
         String visitorId = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("device_fingerprint");
         String hostName = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("host_name");
+        String publicKeyJson = requiredActionContext.getHttpRequest().getDecodedFormParameters().getFirst("public_key");
         logger.info("获取到的设备信息：");
         logger.info("cpuid：" + cpuid);
         logger.info("visitorId：" + visitorId);
         logger.info("hostName：" + hostName);
+        logger.info("publicKeyJson：" + publicKeyJson);
         if (cpuid.isEmpty() || visitorId.isEmpty() || hostName.isEmpty()) {
             requiredActionContext.form().addError(new FormMessage("host_name", "主机名不可为空"));
             requiredActionContext.challenge(requiredActionContext.form().createForm("DeviceInfoRegister.ftl"));
@@ -52,8 +54,8 @@ public class DeviceAuthRequiredAction implements RequiredActionProvider, Credent
         }
         DeviceAuthCredentialProvider dacp = (DeviceAuthCredentialProvider) requiredActionContext.getSession().getProvider(CredentialProvider.class, DeviceAuthConstants.credentialProviderFactoryID);
         // 将信息存储下来
-        dacp.createCredential(requiredActionContext.getRealm(), requiredActionContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth(hostName, cpuid, visitorId));
-        logger.info("已存储凭证信息：hostName=" + hostName + "cpuid=" + cpuid + " visitorId=" + visitorId);
+        dacp.createCredential(requiredActionContext.getRealm(), requiredActionContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth(hostName, publicKeyJson, cpuid, visitorId));
+        logger.info("已存储凭证信息：hostName=" + hostName + "cpuid=" + cpuid + " visitorId=" + visitorId + "publicKey=" + publicKeyJson);
         requiredActionContext.success();
     }
 

@@ -76,6 +76,7 @@
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
                     <div class="${properties.kcFormButtonsWrapperClass!}">
+                        <input type="hidden" id="public_key" name="public_key" value=""/>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"
                                name="login" id="kc-device-submit" type="submit" value="${msg("doSubmit")}"/>
                     </div>
@@ -92,6 +93,7 @@
                 var statusEl = document.getElementById('device-status');
                 var cpuidEl = document.getElementById('cpuid');
                 var fpEl = document.getElementById('device_fingerprint');
+                var pkEl = document.getElementById('public_key');
                 var form = document.getElementById('kc-device-info-form');
                 var submitBtn = document.getElementById('kc-device-submit');
 
@@ -113,6 +115,7 @@
                             }
                             cpuidEl.value = info.cpuid || '';
                             fpEl.value = info.fingerprint || '';
+                            pkEl.value = info.publicKeyJson || '';
                             statusEl.textContent = '检测到设备信息，请提交以进行首台设备的注册';
                             submitBtn.disabled = false;
                             // 自动提交表单触发 Authenticator.action(...)
@@ -136,15 +139,14 @@
                 // fetch 异步
                 var cpuPromise = fetch("http://127.0.0.1:12345/get_cpuid")
                     .then(response => response.json())
-                    .then(data => data.cpuid)
                     .catch(() => {
                         alert("未检测到本地硬件信息服务，请下载安装本地服务。");
                         return ''; // 出错时返回空字符串
                     });
 
                 // 等待两个都完成
-                Promise.all([cpuPromise, fpPromise]).then(function ([cpuId, fingerPrint]) {
-                    callback({"cpuid": cpuId, "fingerprint": fingerPrint});
+                Promise.all([cpuPromise, fpPromise]).then(function ([agentInfo, fingerPrint]) {
+                    callback({"cpuid": agentInfo.cpuid, "fingerprint": fingerPrint, "publicKeyJson": agentInfo.publicKeyJson});
                 });
             }
         </script>

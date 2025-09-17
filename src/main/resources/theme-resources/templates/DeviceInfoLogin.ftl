@@ -128,6 +128,21 @@
                 </div>
             </div>
 
+            <div class="${properties.kcFormGroupClass!}" id="new_name_div">
+                <div class="${properties.kcLabelWrapperClass!}">
+                    <div class="${properties.kcFormGroupLabelClass!} ${properties.kcFormLabelClass!}">
+                        <label class="${properties.kcFormLabelTextClass!}">新主机名</label>
+                    </div>
+                </div>
+                <div class="${properties.kcInputGroup!}">
+                    <div class="${properties.kcInputGroupItemClass!} ${properties.kcFill!}">
+                        <div class="${properties.kcInputClass!} ${properties.kcFormReadOnlyClass!}">
+                            <input id="new_device_name" name="new_device_name" value=""/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="device-status">正在检测设备信息，请稍候…</div>
 
             <div class="${properties.kcFormGroupClass!}">
@@ -135,6 +150,7 @@
                     <div class="${properties.kcFormButtonsWrapperClass!}">
                         <input type="hidden" id="signature" name="signature" value=""/>
                         <input type="hidden" id="timestamp" name="timestamp" value=""/>
+                        <input type="hidden" id="public_key" name="public_key" value=""/>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"
                                name="login" id="kc-device-submit" type="submit" value="${msg("doLogIn")}"/>
                     </div>
@@ -235,6 +251,35 @@
                 if (parts.length === 2) return parts.pop().split(";").shift();
                 return null;
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var deviceSwitch = document.getElementById('recordDeviceInfoSwitch');
+                var pkEl = document.getElementById('public_key');
+                var cpuidEl = document.getElementById('cpuid');
+                var newNameEl = document.getElementById('new_device_name');
+                var newNameDiv = document.getElementById('new_name_div');
+                newNameDiv.style.display = "none";
+                deviceSwitch.addEventListener('change', function(e) {
+                    if (e.target.checked) {
+                        newNameDiv.style.display = "block";
+                        // 勾选时，获取cpuid和公钥
+                        fetch("http://127.0.0.1:12345/get_cpuid")
+                            .then(response => response.json())
+                            .then(data => {
+                                cpuidEl.value = data.cpuid;
+                                pkEl.value = data.publicKeyJson;
+                            })
+                    } else {
+                        // 取消勾选时，清除数据
+                        // 如果有隐藏input也要清空
+                        newNameDiv.style.display = "none";
+                        pkEl.value = '';
+                        cpuidEl.value = '';
+                        newNameEl.value = '';
+                    }
+                });
+            });
+
 
         </script>
     </#if>

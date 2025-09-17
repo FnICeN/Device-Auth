@@ -89,19 +89,23 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         // 得到提交的设备信息
         String cpuid = formData.getFirst("cpuid");
         String visitorId = formData.getFirst("device_fingerprint");
+        String publicKeyJson = formData.getFirst("public_key");
         String credentialId = formData.getFirst("credentialId");
         String signature = formData.getFirst("signature");
         String timestamp = formData.getFirst("timestamp");
         String nonce = getNonceFromCookie(authenticationFlowContext);
         boolean save = formData.getFirst("recordDeviceInfo") != null;
+        String newName = formData.getFirst("new_device_name");
         logger.info("凭据ID：" + credentialId);
         logger.info("设备信息：");
         logger.info("cpuid: " + cpuid);
         logger.info("visitorId: " + visitorId);
+        logger.info("publicKeyJson: " + publicKeyJson);
         logger.info("signature: " + signature);
         logger.info("timestamp: " + timestamp);
         logger.info("nonce：" + nonce);
         logger.info("是否保存: " + save);
+        logger.info("新设备名：" + newName) ;
 
         String challengeResponse = signature + "||" + visitorId + "||" + timestamp + "||" + nonce;
 
@@ -109,21 +113,24 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         boolean isValid = getCredentialProvider(authenticationFlowContext.getSession()).isValid(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), input);
         // 用户选择注册新设备
         if (save && !isValid) {
-            registerNewDevice(authenticationFlowContext, cpuid, visitorId);
+            if (newName.isEmpty()) return false;
+            registerNewDevice(authenticationFlowContext, newName, cpuid, visitorId, publicKeyJson);
             return true;
         }
         return isValid;
     }
 
-    private void registerNewDevice(AuthenticationFlowContext authenticationFlowContext, String cpuid, String visitorId) {
+    private void registerNewDevice(AuthenticationFlowContext authenticationFlowContext, String newName, String cpuid, String visitorId, String publicKeyJson) {
         if (credentialNum >= 3) {
             Response challenge = authenticationFlowContext.form().setError("凭证超上限").createForm("DeviceInfoLogin.ftl");
             authenticationFlowContext.failureChallenge(AuthenticationFlowError.ACCESS_DENIED, challenge);
         }
         logger.info("选择注册且此设备原本无效，此认证直接通过，将信息传递至下一个认证器...");
         authenticationFlowContext.getAuthenticationSession().setClientNote("registeringDevice", "true");
+        authenticationFlowContext.getAuthenticationSession().setClientNote("newName", newName);
         authenticationFlowContext.getAuthenticationSession().setClientNote("cpuid", cpuid);
         authenticationFlowContext.getAuthenticationSession().setClientNote("visitorId", visitorId);
+        authenticationFlowContext.getAuthenticationSession().setClientNote("publicKeyJson", publicKeyJson);
     }
 
     private void setNonceCookie(AuthenticationFlowContext context) {

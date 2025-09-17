@@ -42,7 +42,6 @@ public class DeviceAuthCredentialProviderImpl implements DeviceAuthCredentialPro
         String visitorId = parts[1];
         String timestamp = parts[2];
         String nonce = parts[3];
-        String publicKeyJson = "{\"primaryKeyId\":332447679,\"key\":[{\"keyData\":{\"typeUrl\":\"type.googleapis.com/google.crypto.tink.Ed25519PublicKey\",\"value\":\"EiAAGqKf+aRnzwgdqv5/KpfO4smRk2UYu0Pbc/GuXL3JqQ==\",\"keyMaterialType\":\"ASYMMETRIC_PUBLIC\"},\"status\":\"ENABLED\",\"keyId\":332447679,\"outputPrefixType\":\"TINK\"}]}";
         //验证时间戳，防重放
         if (!isTimestampValid(timestamp)) return false;
         System.out.println("timestamp is valid");
@@ -51,6 +50,7 @@ public class DeviceAuthCredentialProviderImpl implements DeviceAuthCredentialPro
         DeviceAuthCredentialModel dacm = getCredentialFromModel(cm);
         // 验签（只要CPUID对了、时间戳、nonce未被改动就能通过）
         try {
+            String publicKeyJson = dacm.getDeviceName().getPublicKeyJson();
             CryptoUtil cryptoUtil = new CryptoUtil();
             cryptoUtil.verifySign(signature, dacm.getDeviceData().getCpuId(), timestamp, nonce, publicKeyJson);
         } catch (GeneralSecurityException | IOException e) {

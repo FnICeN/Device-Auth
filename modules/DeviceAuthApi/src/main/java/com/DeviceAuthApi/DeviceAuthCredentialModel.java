@@ -28,8 +28,8 @@ public class DeviceAuthCredentialModel extends CredentialModel {
     }
 
     // 当场创建POJO再构建Model
-    private DeviceAuthCredentialModel(String deviceName, String cpuId, String visitorId) {
-        this.deviceName = new DeviceName(deviceName);
+    private DeviceAuthCredentialModel(String deviceName, String publicKeyJson, String cpuId, String visitorId) {
+        this.deviceName = new DeviceName(deviceName, publicKeyJson);
         this.deviceData = new DeviceData(cpuId, visitorId);
     }
 
@@ -52,8 +52,8 @@ public class DeviceAuthCredentialModel extends CredentialModel {
         }
     }
 
-    public static DeviceAuthCredentialModel createDeviceAuth(String deviceName, String cpuId, String visitorId) {
-        DeviceAuthCredentialModel dacm = new DeviceAuthCredentialModel(deviceName, cpuId, visitorId);
+    public static DeviceAuthCredentialModel createDeviceAuth(String deviceName, String publicKeyJson, String cpuId, String visitorId) {
+        DeviceAuthCredentialModel dacm = new DeviceAuthCredentialModel(deviceName, publicKeyJson, cpuId, visitorId);
         dacm.fillFields();
         return dacm;
     }
