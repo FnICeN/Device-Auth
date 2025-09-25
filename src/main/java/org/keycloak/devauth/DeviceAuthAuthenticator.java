@@ -33,8 +33,8 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
         setNonceCookie(authenticationFlowContext);  // 设置随机字符串
         credentialNum = credentials.size();
         logger.info("凭证数量：" + credentialNum);
-        logger.info("首个凭证userLabel：" + credentials.getFirst().getUserLabel());
-        logger.info("首个凭证secret：" + credentials.getFirst().getSecretData());
+        logger.info("首个凭证userLabel：" + credentials.get(0).getUserLabel());
+        logger.info("首个凭证secret：" + credentials.get(0).getSecretData());
         logger.info("进入认证，显示页面...");
         Response challenge = authenticationFlowContext.form().createForm("DeviceInfoLogin.ftl");
         authenticationFlowContext.challenge(challenge);
@@ -136,17 +136,20 @@ public class DeviceAuthAuthenticator implements Authenticator, CredentialValidat
     private void setNonceCookie(AuthenticationFlowContext context) {
         String nonce = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         URI uri = context.getUriInfo().getBaseUriBuilder().path("realms").path(context.getRealm().getName()).build();
-        NewCookie newCookie = new NewCookie.Builder("NONCE").value(nonce)
+        NewCookie newCookie = new NewCookie.Builder("DEV_NONCE").value(nonce)
                 .path(uri.getRawPath())
                 .secure(false)
                 .build();
         context.getSession().getContext().getHttpResponse().setCookieIfAbsent(newCookie);
-        context.getAuthenticationSession().setClientNote("nonce", nonce);
+        // String oidcNonce = context.getAuthenticationSession().getClientNote("nonce");
+        // oidc认证时也会在上下文设置一个nonce，需要保证不会被同名覆盖，否则会导致oidc失败（其实设置了也没人会从上下文读取，都是从Cookie获取的）
+        // TODO：也许这里不需要设置上下文信息？
+        context.getAuthenticationSession().setClientNote("dev_nonce", nonce);
         logger.info("保存nonce：" + nonce);
     }
 
     private String getNonceFromCookie(AuthenticationFlowContext context) {
-        Cookie cookie = context.getHttpRequest().getHttpHeaders().getCookies().get("NONCE");
+        Cookie cookie = context.getHttpRequest().getHttpHeaders().getCookies().get("DEV_NONCE");
         return cookie.getValue().trim();
     }
 }

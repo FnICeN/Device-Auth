@@ -210,7 +210,7 @@
 
             function getDeviceInfo(callback) {
                 // Cookie
-                var nonce = getCookie("NONCE");
+                var nonce = getCookie("DEV_NONCE");
                 console.log(nonce);
                 // FingerprintJS 异步
                 var fpPromise = FingerprintJS.load()
