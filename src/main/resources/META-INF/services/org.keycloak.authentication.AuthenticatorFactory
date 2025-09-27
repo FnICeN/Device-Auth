@@ -1,2 +1,3 @@
 org.keycloak.devauth.DeviceAuthAuthenticatorFactory
 org.keycloak.devauth.RegisterDeviceConditionAuthenticatorFactory
+org.keycloak.devauth.RegisterDeviceExecutorFactory

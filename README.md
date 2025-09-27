@@ -9,19 +9,19 @@
 
 > [!IMportant]
 >
-> 由于侵入式设备信息提取程序（Agent程序）使用WiX打包，所以此插件仅在**终端设备系统**为Windows的运行环境中进行过测试（Keycloak后端可运行于Linux），Linux终端设备能否运行尚未测试
+> 侵入式设备信息提取程序（Agent）仅在**终端设备系统**为Windows的运行环境中进行过测试（Keycloak后端可运行于Linux），尚不知Linux终端设备能否正常运行Agent
 
 ## 特点
 
-- 设限：最多允许3台不同设备注册
+- **设限**：最多允许3台不同设备注册
 
-- 安全：敏感认证信息被签名后传递（除注册新设备时），明文信息不泄露、防重放、防伪造
+- **安全**：敏感认证信息被签名后传递（除注册新设备时），明文信息不泄露、防重放、防伪造
 
-- 扩展：插件本身提供初次设备注册业务，另提供自定义Condition用于判断是否勾选【注册新设备】
+- **扩展**：插件本身提供[单次认证中的新设备注册业务](#自带功能)（配合Register Device执行器），另提供自定义Condition用于判断是否勾选【注册新设备】、解耦操作逻辑实现代码至单独JAR包
 
 > [!TIP]
 >
-> Condition用于支持多设备注册业务，该业务可参照[隐私问题认证](https://github.com/FnICeN/keycloak-plugin)样例进行开发
+> Condition与解耦的JAR包用于支持其他自行开发的认证器执行多设备注册业务，该业务可参照[隐私问题认证](https://github.com/FnICeN/keycloak-plugin)样例进行开发
 
 # 部署
 
@@ -154,3 +154,52 @@ mvn install:install-file -DgroupId=com.DeviceAuthApi -DartifactId=DeviceAuthApi 
 在**终端设备**运行`LocalHWService.exe`安装程序，本地Agent将被默认安装于`C:/Program Files/LocalHWService/`目录下，双击exe文件，Agent程序即开始在后台运行
 
 接下来的部署步骤从[上文](#快速开始)第3步开始即可
+
+## 新设备注册
+
+### 自带功能
+
+原生支持**单独进行的设备信息保存操作**（配合Register Device执行器）
+
+可以通过设置Register Device执行器，实现在用户希望选择注册新设备时，**仅当其他认证器通过时才新增该设备信息**，具体使用何种认证器取决于管理员的流程配置
+
+![1758959381192](static/1758959381192.png)
+
+以上图为例：
+
+1. 用户首先输入账户名和密码，通过后进入设备认证环节Device Auth
+2. 该环节中若**勾选【记录本次设备信息】且当前设备信息无效**，则进入Password Form
+3. 再次输入账户密码，只有此验证通过后Register Device才会将该新设备信息写入Keycloak数据库
+
+### 自定义认证器保存新设备（开发者）
+
+接入自定义的其他认证器时，需要在项目中引用依赖`com.DeviceAuthApi`：
+
+```xml
+<dependency>
+    <groupId>com.DeviceAuthApi</groupId>
+    <artifactId>DeviceAuthApi</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+Device Auth会将以下四个字符串传递到`ClientNote`，使用`.getClientNote()`获取：
+
+- `newName`：希望注册的新设备名
+- `cpuid`：新设备CPU ID
+- `visitorId`：新设备浏览器指纹
+- `publicKeyJson`：新设备公钥
+
+执行保存时：
+
+```java
+public void action(AuthenticationFlowContext authenticationFlowContext) {
+    // ...
+    DeviceAuthCredentialProvider dacp = (DeviceAuthCredentialProvider) authenticationFlowContext.getSession().getProvider(CredentialProvider.class, DeviceAuthConstants.credentialProviderFactoryID);
+    dacp.createCredential(authenticationFlowContext.getRealm(), authenticationFlowContext.getUser(), DeviceAuthCredentialModel.createDeviceAuth(newName, publicKeyJson, cpuid, visitorId));
+    // ...
+}
+```
+
+
+
