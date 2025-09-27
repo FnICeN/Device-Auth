@@ -24,6 +24,7 @@
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-core</artifactId>
             <version>26.2.5</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -35,6 +36,7 @@
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-services</artifactId>
             <version>26.2.5</version>
+            <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.crypto.tink/tink -->
         <dependency>
@@ -61,6 +63,7 @@
                                 <includes>
                                     <include>com.google.crypto.tink:*</include>
                                     <include>com.google.protobuf:*</include>
+                                    <include>com.DeviceAuthApi:DeviceAuthApi</include>
                                     <!-- 如有其他第三方依赖，也可以加进来 -->
                                 </includes>
                             </artifactSet>

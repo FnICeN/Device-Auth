@@ -25,20 +25,20 @@
 
 # 部署
 
-为了运行插件，需要下载或构建3个JAR包和1个exe安装程序：
+为了运行插件，需要下载2个JAR包和1个exe安装程序（若手动构建则还需要一个API-JAR）：
 
-1. DeviceAuth.jar
-2. DeviceAuthApi.jar
-3. DeviceAuthProviderImpl.jar
-4. GetInfo.exe
+1. `DeviceAuth.jar`
+2. `DeviceAuthProviderImpl.jar`
+3. `GetInfo.exe`
+4. `DeviceAuthApi.jar`（构建时使用）
 
 ## 快速开始
 
 1. 从[Release](https://github.com/FnICeN/Device-Auth/releases)获取最新JAR包与安装程序
 
-2. 双击GetInfo.exe，Agent程序将会在命令行启动
+2. 双击`GetInfo.exe`，Agent程序将会在命令行启动
 
-3. 将三个JAR包放入Keycloak的`providers/`目录中
+3. 将两个JAR包放入Keycloak的`providers/`目录中
 
    - 如果Keycloak是一般部署方式，则路径为`keycloak/providers/`
    - 如果Keycloak使用Docker部署，则路径为`/opt/jboss/keycloak/standalone/deployments/`
@@ -61,7 +61,7 @@
 
 > [!NOTE]
 >
-> [Release](https://github.com/FnICeN/Device-Auth/releases)中的JAR包使用JDK23构建，如果你想更改JDK版本（一些旧版本Keycloak不兼容较新的JDK），可以修改存在的4个`pom.xml`并手动构建，环境需求：
+> [Release](https://github.com/FnICeN/Device-Auth/releases)中的JAR包使用JDK23构建，如果你想更改JDK版本（一些旧版本Keycloak不兼容较新的JDK），可以修改各目录下的`pom.xml`并手动构建，环境需求：
 >
 > - Maven
 > - JDK
@@ -72,17 +72,34 @@
 
 ```bash
 git clone git@github.com:FnICeN/Device-Auth.git
+cd DeviceAuth
 ```
 
 ### JAR包
 
-分别在以下三个目录执行`mvn clean package`：
+首先构建API-JAR：
+
+```bash
+cd modules/DeviceAuthApi
+mvn clean package
+```
+
+将API-JAR安装到Maven：
+
+```bash
+mvn install:install-file -DgroupId=com.DeviceAuthApi -DartifactId=DeviceAuthApi -Dversion=1.0-SNAPSHOT -Dpackaging=jar -Dfile=DeviceAuthApi-1.0-SNAPSHOT.jar
+```
+
+> [!TIP]
+>
+> 单独构建API-JAR的原因是Impl-JAR需要将此依赖一并打包，三个JAR包在Keycloak中的依赖关系关系可参考[此处](https://blog.fnicen.top/posts/keycloak%E4%B8%A4%E7%A7%8D%E8%87%AA%E5%AE%9A%E4%B9%89%E8%AE%A4%E8%AF%81%E5%99%A8%E9%85%8D%E5%90%88%E8%81%94%E5%8A%A8/#%E5%BC%95%E7%94%A8)
+
+分别在以下两个目录执行`mvn clean package`：
 
 - `DeviceAuth/`
-- `DeviceAuth/modules/DeviceAuthApi/`
 - `DeviceAuth/modules/DeviceAuthProviderImpl/`
 
-相应的，各目录下都会出现`target/xxx.jar`文件，收集起来得到3个JAR包
+相应地，各目录下都会出现`target/xxx.jar`文件，收集起来得到2个JAR包
 
 ### Agent程序（Go版本）
 
@@ -95,7 +112,7 @@ git clone git@github.com:FnICeN/Device-Auth.git
 2. 安装依赖：
 
    ```bash
-   cd DeviceAuth/modules/GetInfo-go
+   cd modules/GetInfo-go
    go mod tidy
    ```
 
@@ -116,7 +133,7 @@ git clone git@github.com:FnICeN/Device-Auth.git
 2. 打包为JAR文件：
 
    ```bash
-   cd DeviceAuth/modules/GetInfo
+   cd modules/GetInfo
    mvn clean package
    ```
 
